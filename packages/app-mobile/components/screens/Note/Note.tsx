@@ -245,12 +245,16 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 			titleContainerWidth: 0,
 		};
 
-		const initialCursorLocation = NotePositionService.instance().getCursorPosition(props.noteId, defaultWindowId).markdown;
-		if (initialCursorLocation) {
-			this.selection = { start: initialCursorLocation, end: initialCursorLocation };
-		}
 		const initialScroll = NotePositionService.instance().getScrollPercent(props.noteId, defaultWindowId);
-		this.lastBodyScroll = initialScroll;
+		const initialCursorLocation = NotePositionService.instance().getCursorPosition(props.noteId, defaultWindowId).markdown;
+		// Ignore the initial scroll and cursor location when there's a note hash. The editor/viewer should jump to
+		// the hash, rather than the last position.
+		if (!props.noteHash) {
+			if (initialCursorLocation) {
+				this.selection = { start: initialCursorLocation, end: initialCursorLocation };
+			}
+			this.lastBodyScroll = initialScroll;
+		}
 
 		this.titleTextFieldRef = React.createRef();
 
@@ -1728,7 +1732,6 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 					bodyComponent = <NoteEditor
 						ref={this.editorRef}
 						toolbarEnabled={this.props.toolbarEnabled && !increaseSpaceForEditor}
-						themeId={this.props.themeId}
 						noteId={this.props.noteId}
 						noteHash={this.props.noteHash}
 						initialText={note.body}
@@ -1863,7 +1866,7 @@ class NoteScreenComponent extends BaseScreenComponent<ComponentProps, State> imp
 			undoButtonDisabled={!this.state.undoRedoButtonState.canUndo && this.state.undoRedoButtonState.canRedo}
 			onUndoButtonPress={this.screenHeader_undoButtonPress}
 			onRedoButtonPress={this.screenHeader_redoButtonPress}
-			showViewToggleButton={!!this.state.note && !this.state.note.deleted_time}
+			showViewToggleButton={!!this.state.note && !this.state.note.deleted_time && !editorView}
 			viewToggleIconName={this.state.mode === 'edit' ? 'ionicon book' : 'ionicon pencil'}
 			onViewTogglePress={this.toggleVisiblePanes}
 			title={getDisplayParentTitle(this.state.note, this.state.folder)}
